@@ -55,6 +55,11 @@ class Game {
         this.secondsElement = document.getElementById("timer-sec");
         this.levelElement = document.getElementById("level");
         this.scoreElement = document.getElementById("score");
+        this.levelCompleteElement = document.getElementById("level-complete");
+        this.continueElement = document.getElementById("continue");
+        this.continueElement.addEventListener('click', this.OnContinue.bind(this));
+        this.giveUpElement = document.getElementById("give-up");
+        this.giveUpElement.addEventListener('click', this.OnGiveUp.bind(this));
         this.cardsPerLevel = cardsPerLevel;
         this.baseCardCount = baseCardCount;
         this.startLevel = startLevel;
@@ -63,6 +68,16 @@ class Game {
         this.startTimeMiliseconds = Date.now();
         this.timerID = setInterval(() => this.UpdateTimer(), 1000);
         // Установить уровень и создать карты на доске.
+        this.SetLevel(this.startLevel);
+        this.PopulateBoard();
+    }
+    ResetGame() {
+        this.currentScore = 0;
+        this.scoreElement.innerHTML = "0";
+        this.startTimeMiliseconds = Date.now();
+        this.minutesElement.innerHTML = "00";
+        this.secondsElement.innerHTML = "00";
+        this.timerID = setInterval(() => this.UpdateTimer(), 1000);
         this.SetLevel(this.startLevel);
         this.PopulateBoard();
     }
@@ -127,11 +142,22 @@ class Game {
         card1.Unflip();
         card2.Unflip();
     }
-    // При завешении уровня, уведомить пользователя и перейти на следующий.
+    //При прохождении уровня, показать кнопку "continue".
     OnLevelFinished() {
-        alert("Level finished! \nCurrent score: " + this.currentScore);
-        this.SetLevel(this.currentLevel + 1);
-        this.PopulateBoard();
+        this.levelCompleteElement.classList.remove("hidden");
+    }
+    // При нажатии "continue", пересоздаь доску и перейти на следующий уровень.
+    OnContinue() {
+        if (this.flippedPairsCount != 0) {
+            this.levelCompleteElement.classList.add("hidden");
+            this.SetLevel(this.currentLevel + 1);
+            this.PopulateBoard();
+        }
+    }
+    OnGiveUp() {
+        clearInterval(this.timerID);
+        alert("You have given up!");
+        this.ResetGame();
     }
     // При завершении финального уровня, посчитать финальный счет, ресетнуть значения и перейти на начальный уровень.
     OnGameFinished() {
@@ -144,14 +170,7 @@ class Game {
         // Финальный счет.
         let finalScore = flippingScore + timerScore;
         alert("Game over! \nFlipping score: " + flippingScore + "\nScore from time: " + timerScore + "\nFinal score: " + finalScore);
-        this.currentScore = 0;
-        this.scoreElement.innerHTML = "0";
-        this.startTimeMiliseconds = Date.now();
-        this.minutesElement.innerHTML = "00";
-        this.secondsElement.innerHTML = "00";
-        this.timerID = setInterval(() => this.UpdateTimer(), 1000);
-        this.SetLevel(this.startLevel);
-        this.PopulateBoard();
+        this.ResetGame();
     }
     // Каждую секунду обновнять таймер.
     UpdateTimer() {
