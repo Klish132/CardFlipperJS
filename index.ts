@@ -80,10 +80,13 @@ class Game {
     private flippedPairsCount: number;
 
     private currentScore: number = 0;
-    // Начало отчета времени в мс.
-    private startTimeMiliseconds: number;
-    // Кол-во прошедших с начала игры секунд.
-    private currentTimeSeconds: number;
+    // Время запуска/возобновления таймера в милисекундах.
+    private timerStartTimeMiliseconds: number;
+    // Кол-во прошедших с начала игры секунд в момент паузы таймера.
+    private onPauseTimeSeconds: number = 0;
+    // Суммарное кол-во прошедших с начала игры секунд.
+    private currentTimeSeconds: number = 0;
+    // ID интервала таймера.
     private timerID: number;
     // Начальный уровень (default 1)
     private startLevel: number;
@@ -130,11 +133,10 @@ class Game {
         this.maxLevel = maxLevel;
 
         // Начать таймер.
-        this.startTimeMiliseconds = Date.now();
-        this.timerID = setInterval(() => this.UpdateTimer(), 1000);
-
-        // Установить уровень и создать карты на доске.
+        this.StartTimer();
+        // Установить уровень.
         this.SetLevel(this.startLevel);
+        // Создать карты на доске.
         this.PopulateBoard();
     }
 
@@ -142,10 +144,10 @@ class Game {
     private ResetGame() {
         this.currentScore = 0;
         this.scoreElement.innerHTML = "0";
-        this.startTimeMiliseconds = Date.now();
+        this.timerStartTimeMiliseconds = Date.now();
         this.minutesElement.innerHTML = "00";
         this.secondsElement.innerHTML = "00";
-        this.timerID = setInterval(() => this.UpdateTimer(), 1000);
+        this.StartTimer();
         this.SetLevel(this.startLevel);
         this.PopulateBoard();
     }
@@ -214,15 +216,17 @@ class Game {
         card2.Unflip();
     }
 
-    //При прохождении уровня, показать кнопку "continue".
+    //При прохождении уровня, поставить таймер на паузу и показать кнопку "continue".
     private OnLevelFinished() {
+        this.PauseTimer();
         this.levelCompleteElement.classList.remove("hidden");
     }
 
-    // При нажатии "continue", пересоздаь доску и перейти на следующий уровень.
+    // При нажатии "continue", пересоздать доску, перейти на следующий уровень и возобновить таймер.
     private OnContinue() {
         if (this.flippedPairsCount != 0) {
             this.levelCompleteElement.classList.add("hidden");
+            this.ResumeTimer();
             this.SetLevel(this.currentLevel + 1);
             this.PopulateBoard();
         }
@@ -230,7 +234,7 @@ class Game {
 
     // Ресетнуть игру когда сдаемся.
     private OnGiveUp() {
-        clearInterval(this.timerID);
+        this.StopTimer();
         alert("You have given up!");
         this.ResetGame();
     }
@@ -238,7 +242,7 @@ class Game {
     // При завершении финального уровня, посчитать финальный счет, ресетнуть значения и перейти на начальный уровень.
     private OnGameFinished() {
         // Остановить таймер.
-        clearInterval(this.timerID);
+        this.StopTimer();
         // Очки, полученые во время игры.
         let flippingScore = this.currentScore;
         // Очки от времени (20 - примерное среднее время прохождения одного уровня)
@@ -249,14 +253,39 @@ class Game {
         this.ResetGame();
     }
 
+    // Запустить таймер.
+    private StartTimer() {
+        this.timerStartTimeMiliseconds = Date.now();
+        this.onPauseTimeSeconds = 0;
+        this.currentTimeSeconds = 0;
+        this.timerID = setInterval(() => this.UpdateTimer(), 1000);
+    }
+
+    // Полностью остановить таймер.
+    private StopTimer() {
+        clearInterval(this.timerID);
+    }
+
+    // Поставить таймер на паузу.
+    private PauseTimer() {
+        clearInterval(this.timerID);
+        this.onPauseTimeSeconds = this.currentTimeSeconds;
+    }
+
+    // Возобновить таймер после паузы.
+    private ResumeTimer() {
+        this.timerStartTimeMiliseconds = Date.now()
+        this.timerID = setInterval(() => this.UpdateTimer(), 1000);
+    }
+
     // Каждую секунду обновнять таймер.
     public UpdateTimer() {
         let now = Date.now();
-        let timeDelta = now - this.startTimeMiliseconds;
+        let timeDelta = now - this.timerStartTimeMiliseconds;
         let milsToSecs = Math.floor(timeDelta / 1000);
-        this.currentTimeSeconds = milsToSecs;
-        let mins = Math.floor(milsToSecs / 60);
-        let secs = Math.floor(milsToSecs % 60);
+        this.currentTimeSeconds = this.onPauseTimeSeconds + milsToSecs;
+        let mins = Math.floor(this.currentTimeSeconds / 60);
+        let secs = Math.floor(this.currentTimeSeconds % 60);
 
         if (mins < 10) {
             this.minutesElement.innerHTML = "0" + mins;

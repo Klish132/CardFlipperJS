@@ -56,6 +56,9 @@ class Card {
 class Game {
     constructor(cardsPerLevel = 2, startLevel = 1, baseCardCount = 2, maxLevel = 10) {
         this.currentScore = 0;
+        // Кол-во прошедших с начала игры секунд.
+        this.currentTimeSeconds = 0;
+        this.onPauseTimeSeconds = 0;
         this.boardElement = document.getElementById("board");
         this.minutesElement = document.getElementById("timer-min");
         this.secondsElement = document.getElementById("timer-sec");
@@ -72,8 +75,7 @@ class Game {
         this.startLevel = startLevel;
         this.maxLevel = maxLevel;
         // Начать таймер.
-        this.startTimeMiliseconds = Date.now();
-        this.timerID = setInterval(() => this.UpdateTimer(), 1000);
+        this.StartTimer();
         // Установить уровень и создать карты на доске.
         this.SetLevel(this.startLevel);
         this.PopulateBoard();
@@ -82,10 +84,10 @@ class Game {
     ResetGame() {
         this.currentScore = 0;
         this.scoreElement.innerHTML = "0";
-        this.startTimeMiliseconds = Date.now();
+        this.timerStartTimeMiliseconds = Date.now();
         this.minutesElement.innerHTML = "00";
         this.secondsElement.innerHTML = "00";
-        this.timerID = setInterval(() => this.UpdateTimer(), 1000);
+        this.StartTimer();
         this.SetLevel(this.startLevel);
         this.PopulateBoard();
     }
@@ -152,26 +154,28 @@ class Game {
     }
     //При прохождении уровня, показать кнопку "continue".
     OnLevelFinished() {
+        this.PauseTimer();
         this.levelCompleteElement.classList.remove("hidden");
     }
     // При нажатии "continue", пересоздаь доску и перейти на следующий уровень.
     OnContinue() {
         if (this.flippedPairsCount != 0) {
             this.levelCompleteElement.classList.add("hidden");
+            this.ResumeTimer();
             this.SetLevel(this.currentLevel + 1);
             this.PopulateBoard();
         }
     }
     // Ресетнуть игру когда сдаемся.
     OnGiveUp() {
-        clearInterval(this.timerID);
+        this.StopTimer();
         alert("You have given up!");
         this.ResetGame();
     }
     // При завершении финального уровня, посчитать финальный счет, ресетнуть значения и перейти на начальный уровень.
     OnGameFinished() {
         // Остановить таймер.
-        clearInterval(this.timerID);
+        this.StopTimer();
         // Очки, полученые во время игры.
         let flippingScore = this.currentScore;
         // Очки от времени (20 - примерное среднее время прохождения одного уровня)
@@ -181,14 +185,31 @@ class Game {
         alert("Game over! \nFlipping score: " + flippingScore + "\nScore from time: " + timerScore + "\nFinal score: " + finalScore);
         this.ResetGame();
     }
+    StartTimer() {
+        this.timerStartTimeMiliseconds = Date.now();
+        this.onPauseTimeSeconds = 0;
+        this.currentTimeSeconds = 0;
+        this.timerID = setInterval(() => this.UpdateTimer(), 1000);
+    }
+    StopTimer() {
+        clearInterval(this.timerID);
+    }
+    PauseTimer() {
+        clearInterval(this.timerID);
+        this.onPauseTimeSeconds = this.currentTimeSeconds;
+    }
+    ResumeTimer() {
+        this.timerStartTimeMiliseconds = Date.now();
+        this.timerID = setInterval(() => this.UpdateTimer(), 1000);
+    }
     // Каждую секунду обновнять таймер.
     UpdateTimer() {
         let now = Date.now();
-        let timeDelta = now - this.startTimeMiliseconds;
+        let timeDelta = now - this.timerStartTimeMiliseconds;
         let milsToSecs = Math.floor(timeDelta / 1000);
-        this.currentTimeSeconds = milsToSecs;
-        let mins = Math.floor(milsToSecs / 60);
-        let secs = Math.floor(milsToSecs % 60);
+        this.currentTimeSeconds = this.onPauseTimeSeconds + milsToSecs;
+        let mins = Math.floor(this.currentTimeSeconds / 60);
+        let secs = Math.floor(this.currentTimeSeconds % 60);
         if (mins < 10) {
             this.minutesElement.innerHTML = "0" + mins;
         }

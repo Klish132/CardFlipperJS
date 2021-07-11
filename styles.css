@@ -20,6 +20,7 @@ input {
     box-shadow: 4px 4px 2px 0px rgba(50, 50, 50, 0.75);
     background-color: white;
     border-radius: 10px;
+    cursor: pointer;
 }
 
 .continue:hover {
@@ -81,6 +82,7 @@ td {
 
 .flippable-card:hover {
     border: 2px solid purples;
+    cursor: pointer;
 }
 
 .flippable-card.flipped {
