@@ -79,6 +79,10 @@ td {
     color: white;
 }
 
+.flippable-card:hover {
+    border: 2px solid purples;
+}
+
 .flippable-card.flipped {
     transform: rotateY(180deg);
     box-shadow: -4px 4px 2px 0px rgba(50, 50, 50, 0.75);

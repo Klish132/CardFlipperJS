@@ -15,11 +15,13 @@ class Card {
     CreateCardElement() {
         let flippableElement = document.createElement("div");
         flippableElement.classList.add("flippable-card");
+        // Создать элемент лицевой стороны, но не вставлять его, чтобы через html нельзя было подсмотреть карточки.
         let front = document.createElement("div");
         front.classList.add("front");
         front.setAttribute("style", "color: " + COLORS[this.cardNumber - 1]);
         front.innerHTML = this.cardNumber.toString();
-        flippableElement.appendChild(front);
+        this.frontElement = front;
+        // Создать элемент задней стороны.
         let back = document.createElement("div");
         back.classList.add("back");
         back.innerHTML = "?";
@@ -31,11 +33,15 @@ class Card {
     Flip() {
         this.isFlipped = true;
         this.flippableElement.classList.add("flipped");
+        // Добавить в html лицевую сторону.
+        this.flippableElement.appendChild(this.frontElement);
     }
     // Повернуть карточку цифрой вниз.
     Unflip() {
         this.isFlipped = false;
         this.flippableElement.classList.remove("flipped");
+        // Убрать из html лицевую сторону.
+        setTimeout(() => this.flippableElement.removeChild(this.frontElement), 400);
     }
     // Заблокировать карточку (становится серой).
     Lock() {
@@ -55,6 +61,7 @@ class Game {
         this.secondsElement = document.getElementById("timer-sec");
         this.levelElement = document.getElementById("level");
         this.scoreElement = document.getElementById("score");
+        // Задать кнопкам действия при клике.
         this.levelCompleteElement = document.getElementById("level-complete");
         this.continueElement = document.getElementById("continue");
         this.continueElement.addEventListener('click', this.OnContinue.bind(this));
@@ -71,6 +78,7 @@ class Game {
         this.SetLevel(this.startLevel);
         this.PopulateBoard();
     }
+    // Обнулить значения и т.д.
     ResetGame() {
         this.currentScore = 0;
         this.scoreElement.innerHTML = "0";
@@ -154,6 +162,7 @@ class Game {
             this.PopulateBoard();
         }
     }
+    // Ресетнуть игру когда сдаемся.
     OnGiveUp() {
         clearInterval(this.timerID);
         alert("You have given up!");

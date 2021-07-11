@@ -8,6 +8,7 @@ class Card {
     public isFlipped: boolean;
     // Element HTML карты.
     public flippableElement: Element;
+    public frontElement: Element;
 
     private currentGame: Game;
 
@@ -27,12 +28,14 @@ class Card {
         let flippableElement = document.createElement("div",);
         flippableElement.classList.add("flippable-card");
 
+        // Создать элемент лицевой стороны, но не вставлять его, чтобы через html нельзя было подсмотреть карточки.
         let front = document.createElement("div");
         front.classList.add("front");
         front.setAttribute("style", "color: " + COLORS[this.cardNumber - 1]);
         front.innerHTML = this.cardNumber.toString();
-        flippableElement.appendChild(front);
+        this.frontElement = front;
 
+        // Создать элемент задней стороны.
         let back = document.createElement("div");
         back.classList.add("back");
         back.innerHTML = "?";
@@ -46,12 +49,16 @@ class Card {
     public Flip() {
         this.isFlipped = true;
         this.flippableElement.classList.add("flipped");
+        // Добавить в html лицевую сторону.
+        this.flippableElement.appendChild(this.frontElement);
     }
 
     // Повернуть карточку цифрой вниз.
     public Unflip() {
         this.isFlipped = false;
         this.flippableElement.classList.remove("flipped");
+        // Убрать из html лицевую сторону.
+        setTimeout(() => this.flippableElement.removeChild(this.frontElement), 400);
     }
 
     // Заблокировать карточку (становится серой).
