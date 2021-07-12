@@ -82,6 +82,7 @@ class Game {
         this.startLevel = startLevel;
         this.maxLevel = maxLevel;
     }
+    // Запуск игры с указанными настройками.
     StartGame() {
         let cplTemp = parseInt(this.cplInput.value);
         let maxLevelTemp = parseInt(this.maxLevelInput.value);
@@ -314,4 +315,4 @@ class Game {
         return Math.floor(Math.random() * (max - min + 1) + min);
     }
 }
-const currGame = new Game(2, 10, 2, 5);
+const currGame = new Game(2, 1, 2, 5);
