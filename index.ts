@@ -8,6 +8,7 @@ class Card {
     public isFlipped: boolean;
     // Element HTML карты.
     public flippableElement: Element;
+    // Element лицевой стороны.
     public frontElement: Element;
 
     private currentGame: Game;
@@ -31,7 +32,7 @@ class Card {
         // Создать элемент лицевой стороны, но не вставлять его, чтобы через html нельзя было подсмотреть карточки.
         let front = document.createElement("div");
         front.classList.add("front");
-        front.setAttribute("style", "color: " + COLORS[this.cardNumber - 1]);
+        front.setAttribute("style", "color: " + COLORS[this.cardNumber % 10 - 1]);
         front.innerHTML = this.cardNumber.toString();
         this.frontElement = front;
 
@@ -110,8 +111,14 @@ class Game {
     private scoreElement: Element;
 
     private levelCompleteElement: Element;
-    private continueElement: Element;
-    private giveUpElement: Element;
+    private continueButtonElement: Element;
+    private giveUpButtonElement: Element;
+
+    private maxLevelElement: Element;
+    private maxLevelInput: HTMLInputElement;
+    private cplElement: Element;
+    private cplInput: HTMLInputElement;
+    private startButtonElement: Element;
 
     constructor(cardsPerLevel: number = 2, startLevel: number = 1, baseCardCount: number = 2, maxLevel: number = 10) {
         this.boardElement = <HTMLTableElement> document.getElementById("board");
@@ -122,34 +129,59 @@ class Game {
 
         // Задать кнопкам действия при клике.
         this.levelCompleteElement = document.getElementById("level-complete");
-        this.continueElement = document.getElementById("continue");
-        this.continueElement.addEventListener('click', this.OnContinue.bind(this));
-        this.giveUpElement = document.getElementById("give-up");
-        this.giveUpElement.addEventListener('click', this.OnGiveUp.bind(this));
+        this.continueButtonElement = document.getElementById("continue");
+        this.continueButtonElement.addEventListener('click', this.OnContinue.bind(this));
+        this.giveUpButtonElement = document.getElementById("give-up");
+        this.giveUpButtonElement.addEventListener('click', this.OnGiveUp.bind(this));
+
+        this.maxLevelElement = document.getElementById("max-level-element");
+        this.maxLevelInput = document.getElementById("max-level") as HTMLInputElement;
+        this.cplElement = document.getElementById("cpl-element");
+        this.cplInput = document.getElementById("cpl") as HTMLInputElement;
+        this.startButtonElement = document.getElementById("start");
+        this.startButtonElement.addEventListener('click', this.StartGame.bind(this));
 
         this.cardsPerLevel = cardsPerLevel;
         this.baseCardCount = baseCardCount;
         this.startLevel = startLevel;
         this.maxLevel = maxLevel;
+    }
 
-        // Начать таймер.
+    // Запуск игры с указанными настройками.
+    private StartGame() {
+        let cplTemp = parseInt(this.cplInput.value);
+        let maxLevelTemp = parseInt(this.maxLevelInput.value);
+        
+        this.cardsPerLevel = cplTemp;
+        this.maxLevel = maxLevelTemp;
+        this.cplElement.classList.add("hidden");
+        this.maxLevelElement.classList.add("hidden");
+        this.startButtonElement.classList.add("hidden");
+        this.giveUpButtonElement.classList.remove("hidden");
+
+        // Запустить таймер.
         this.StartTimer();
         // Установить уровень.
         this.SetLevel(this.startLevel);
+        // Очистить доску.
+        this.CleanBoard();
         // Создать карты на доске.
         this.PopulateBoard();
     }
 
     // Обнулить значения и т.д.
     private ResetGame() {
+        this.CleanBoard();
         this.currentScore = 0;
         this.scoreElement.innerHTML = "0";
         this.timerStartTimeMiliseconds = Date.now();
         this.minutesElement.innerHTML = "00";
         this.secondsElement.innerHTML = "00";
-        this.StartTimer();
-        this.SetLevel(this.startLevel);
-        this.PopulateBoard();
+        
+        this.cplElement.classList.remove("hidden");
+        this.maxLevelElement.classList.remove("hidden");
+        this.startButtonElement.classList.remove("hidden");
+        this.giveUpButtonElement.classList.add("hidden");
     }
 
     // Установить уровень.
@@ -228,6 +260,7 @@ class Game {
             this.levelCompleteElement.classList.add("hidden");
             this.ResumeTimer();
             this.SetLevel(this.currentLevel + 1);
+            this.CleanBoard();
             this.PopulateBoard();
         }
     }
@@ -338,8 +371,6 @@ class Game {
             }
         }
         // Создаем 2D массив карточек и очищаем таблицу в html.
-        this.cardArray = [];
-        this.boardElement.innerHTML = "";
         for (let i = 0; i < board_width; i++) {
             this.cardArray[i] = [];
             let row = this.boardElement.insertRow();
@@ -354,6 +385,11 @@ class Game {
                 cell.appendChild(card.flippableElement);
             }
         }
+    }
+
+    private CleanBoard() {
+        this.cardArray = [];
+        this.boardElement.innerHTML = "";
     }
 
     // Рандомное число от min до max.

@@ -21,7 +21,18 @@
         </div>
         <div> </div>
         <div>
-            <input id="give-up" class="give-up" type="button" value="Give up">
+            <input id="give-up" class="give-up hidden" type="button" value="Give up">
+        </div>
+        <div id="max-level-element">
+            <label for="max-level">Final level:</label>
+            <input id="max-level" type="number" value=5 min=1 max=10 onkeydown="return false">
+        </div>
+        <div id="cpl-element">
+            <label for="cpl">Cards per level:</label>
+            <input id="cpl" type="number" value=2 step=2 min=2 max=4 onkeydown="return false">
+        </div>
+        <div>
+            <input id="start" class="start" type="button" value="Start">
         </div>
     </div>
     <div>

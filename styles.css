@@ -11,7 +11,7 @@ div {
     margin: 20px auto;
 }
 
-input {
+input[type="button"] {
     transition: 0.2s;
     font-weight: bold;
     width: auto;
@@ -23,24 +23,28 @@ input {
     cursor: pointer;
 }
 
+input[type="button"]:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 2px 0px rgba(50, 50, 50, 0.75);
+}
+
 .continue:hover {
     background-color: limegreen;
     color: white;
 }
 
-.continue:active {
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 2px 0px rgba(50, 50, 50, 0.75);
+input.start {
+    height: 40px;
+    width: 60px;
+}
+
+.start:hover {
+    background-color: lightblue;
 }
 
 .give-up:hover {
     background-color: red;
     color: white;
-}
-
-.give-up:active {
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 2px 0px rgba(50, 50, 50, 0.75);
 }
 
 .hidden {
